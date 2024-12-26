@@ -2,6 +2,11 @@
 <body id="canvas_container">
     <link href="style.css" rel="stylesheet">
 </body>
+<base href="./"/>
 <canvas id="main_canvas"></canvas>
-<script src="fit_screen.js"></script>
-<script src="webgl.js"></script>
+
+<object data="vertex_shader.vert" id="vertex_shader" type="text/plain"></object>
+<object data="fragment_shader.frag" id="fragment_shader" type="text/plain"></object>
+
+<script src="fit_screen.js" id="fit_screen_js"></script>
+<script src="webgl.js" id="webgl_main_js"></script>
