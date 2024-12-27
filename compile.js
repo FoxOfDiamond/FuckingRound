@@ -1,4 +1,4 @@
-console.log(require('child_process').execSync('npx tsc src/webgl.ts --outfile compiled/compiled_webgl.js',{encoding:'utf-8'}));
+console.log(require('child_process').execSync('npx tsc src/webgl/webgl.ts --outfile compiled/compiled_webgl.js',{encoding:'utf-8'}));
 const fs=require('fs')
 const hdata=fs.readFileSync("src/index.html")
 let raw=hdata.toString();
