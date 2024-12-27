@@ -12,6 +12,9 @@ function iniShader(wgl:WebGLRenderingContext,shaderType:number,src:string):WebGL
   wgl.compileShader(shader);
   return shader;
 }
+function drawVertexArray(){
+  
+}
 async function setup(){
   const canvas:HTMLCanvasElement=document.querySelector("#main_canvas");
   const wgl:WebGLRenderingContext=canvas.getContext("webgl");
@@ -27,5 +30,7 @@ async function setup(){
   const vertexShader:WebGLShader=iniShader(wgl,wgl.VERTEX_SHADER,vertexShaderSrc);
   const fragmentShader:WebGLShader=iniShader(wgl,wgl.FRAGMENT_SHADER,fragmentShaderSrc);
   const program=newProgram(wgl,vertexShader,fragmentShader);
+
+  
   return null;
 }
