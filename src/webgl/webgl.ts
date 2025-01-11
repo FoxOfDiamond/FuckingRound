@@ -1,4 +1,12 @@
 const rescale=1;
+class Vector2{
+  x=0;
+  y=0;
+  constructor(tx,ty){
+    this.x=tx;
+    this.y=ty;
+  }
+}
 setup();
 function newProgram(wgl:WebGLRenderingContext,vertexShader:WebGLShader,fragmentShader:WebGLShader){
   let program:WebGLProgram=wgl.createProgram();
@@ -44,10 +52,8 @@ async function setup(){
   const fragmentShader:WebGLShader=iniShader(wgl,wgl.FRAGMENT_SHADER,fragmentShaderSrc.innerText);
   const program=newProgram(wgl,vertexShader,fragmentShader);
 
-  let attLoc=wgl.getAttribLocation(program,'pos');
-  let ssLoc=wgl.getUniformLocation(program,'screenSize');
-  let soLoc=wgl.getUniformLocation(program,'screenOff');
-  
+  let positionAttributeLocation=wgl.getAttribLocation(program,'pos');
+  let trueViewport=new Vector2(1,1);
   function fit(){
     let cont:HTMLDivElement=document.querySelector("#canvas_container");
     const w=window.visualViewport.width-9;
@@ -58,11 +64,19 @@ async function setup(){
     let canv:HTMLCanvasElement=document.querySelector("#main_canvas");
     canv.width=w;
     canv.height=h;
-    const min=Math.min(w,h);
-    wgl.viewport((w-min)/2,(h-min)/2,min,min);
+    const max=Math.max(w,h);
+    wgl.viewport((w-max)/2,(h-max)/2,max,max);
 
-    wgl.uniform1f(ssLoc,min/2);
-    wgl.uniform1fv(soLoc,[(w/2),(h/2)]);
+    wgl.uniform2f(wgl.getUniformLocation(program,'screenOff'),w/2,h/2);
+    wgl.uniform2f(wgl.getUniformLocation(program,'trueViewport'),trueViewport.x,trueViewport.y);
+    wgl.uniform2f(wgl.getUniformLocation(program,'trueViewportFrag'),trueViewport.x,trueViewport.y);
+    if (max==w){
+      trueViewport.x=1;
+      trueViewport.y=h/max;
+    }else{
+      trueViewport.y=1;
+      trueViewport.x=w/max;
+    }
   }
   window.visualViewport.onresize=(event)=>{
     fit();
@@ -72,33 +86,38 @@ async function setup(){
   wgl.bindBuffer(wgl.ARRAY_BUFFER,positionBuffer);
 
   var tespos=[
-    0,0,
-    1,0,
-    0,1,
-    0,0,
     -1,0,
-    0,-1,
-    0,0,
     1,0,
     0,-1,
-    0,0,
+
     -1,0,
-    0,1,
+    1,0,
+    -1,0.5,
+
+    -1,0.5,
+    1,0.5,
+    1,0,
+
+    -1,0.5,
+    -0.5,1,
+    0,0.5,
+
+    0,0.5,
+    0.5,1,
+    1,0.5
   ];
   wgl.bufferData(wgl.ARRAY_BUFFER,new Float32Array(tespos),wgl.DYNAMIC_DRAW);
 
-  wgl.clearColor(0,0,0,1);
-  wgl.clear(wgl.COLOR_BUFFER_BIT);
   wgl.useProgram(program);
-  wgl.enableVertexAttribArray(attLoc);
+  wgl.enableVertexAttribArray(positionAttributeLocation);
 
   wgl.bindBuffer(wgl.ARRAY_BUFFER,positionBuffer);
-  wgl.vertexAttribPointer(attLoc,2,wgl.FLOAT,false,0,0);
+  wgl.vertexAttribPointer(positionAttributeLocation,2,wgl.FLOAT,false,0,0);
 
   fit();
 
   function draw(){
-    wgl.clearColor(0,0,0,1);
+    wgl.clearColor(0.3,0,0,1);
     wgl.clear(wgl.COLOR_BUFFER_BIT);
     wgl.drawArrays(wgl.TRIANGLES,0,tespos.length/2);
     requestAnimationFrame(draw);

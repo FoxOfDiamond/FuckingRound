@@ -1,32 +1,31 @@
 precision mediump float;
-uniform float screenSize;
-uniform float screenOff[2];
-float tempx;
-float tempy;
+uniform vec2 screenOff;
+uniform vec2 trueViewportFrag;
+vec2 trueCoord;
 float mag2(vec2 x){
     return  (sqrt(x.x*x.x+x.y*x.y));
 }
-/*
-    notes for ellie: float only accepts floats! use '2.0', '2' will cause a compile failure. 
-    Also use multiline comments only due to how the compiler is coded
-*/
-vec3 rainbow(float x)
-{
-	float level = floor(x * 6.0);
-	float r = float(level <= 2.0) + float(level > 4.0) * 0.5;
-	float g = max(1.0 - abs(level - 2.0) * 0.5, 0.0);
-	float b = (1.0 - (level - 4.0) * 0.5) * float(level >= 4.0);
-	return vec3(r, g, b);
-}
 void main(){
-    /*tempx=(gl_FragCoord.x-screenOff[0])/screenSize;
-    tempy=(gl_FragCoord.y-screenOff[1])/screenSize;
-    float dis=1.0-mag2(vec2(tempx,tempy));
-    gl_FragColor=vec4(dis,dis/2.5,0.0,1.0);
-    
-    fox gradient ^
-    gay gradient v
-    */
-    tempx=(gl_FragCoord.x-screenOff[0]/2.0)/screenSize;
-    gl_FragColor=vec4(rainbow(tempx),1.0);
+    trueCoord.x=(gl_FragCoord.x-screenOff.x)/screenOff.y/trueViewportFrag.x;
+    trueCoord.y=(gl_FragCoord.y-screenOff.y)/screenOff.x/trueViewportFrag.y;
+    float dis=1.0-mag2(vec2(trueCoord.x,trueCoord.y));
+    /*gl_FragColor=vec4(1.0-(trueCoord.x+trueCoord.y)/1.5,trueCoord.y*3.0,trueCoord.x*3.0,1.0);*/
+    /* trans*/
+    if (abs(trueCoord.y)<0.2){
+        gl_FragColor=vec4(1.0,1.0,1.0,1.0);
+    }else if (abs(trueCoord.y)<0.6){
+        gl_FragColor=vec4(0.96, 0.66, 0.72, 1.0);
+    }else{
+        gl_FragColor=vec4(0.35, 0.8, 0.98, 1.0);
+    }
+    /* ace
+    if (trueCoord.y>0.5){
+        gl_FragColor=vec4(0.0, 0.0, 0.0, 1.0);
+    }else if (trueCoord.y>0.0){
+        gl_FragColor=vec4(0.64, 0.64, 0.64, 1.0);
+    }else if (trueCoord.y>-0.5){
+        gl_FragColor=vec4(1.0,1.0,1.0,1.0);
+    }else{
+        gl_FragColor=vec4(0.5, 0.0, 0.5, 1.0);
+    }*/
 }
