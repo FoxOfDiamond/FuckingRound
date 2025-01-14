@@ -105,13 +105,13 @@ async function setup(){
 
     0,0.5,
     0.5,1,
-    1,0.5
+    1,0.5,
     
-   /*triangle
+   /*triangle*/
    0.5,0.5,
    0.5,0.6,
-   0.4,0.6
-   */
+   0.4,0.6,
+   
   ];
   wgl.bufferData(wgl.ARRAY_BUFFER,new Float32Array(tespos),wgl.DYNAMIC_DRAW);
 
