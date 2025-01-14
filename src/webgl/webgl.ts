@@ -86,6 +86,7 @@ async function setup(){
   wgl.bindBuffer(wgl.ARRAY_BUFFER,positionBuffer);
 
   var tespos=[
+    /*heart*/
     -1,0,
     1,0,
     0,-1,
@@ -105,6 +106,12 @@ async function setup(){
     0,0.5,
     0.5,1,
     1,0.5
+    
+   /*triangle
+   0.5,0.5,
+   0.5,0.6,
+   0.4,0.6
+   */
   ];
   wgl.bufferData(wgl.ARRAY_BUFFER,new Float32Array(tespos),wgl.DYNAMIC_DRAW);
 
@@ -115,11 +122,19 @@ async function setup(){
   wgl.vertexAttribPointer(positionAttributeLocation,2,wgl.FLOAT,false,0,0);
 
   fit();
-
+  let a=0;
   function draw(){
     wgl.clearColor(0.3,0,0,1);
     wgl.clear(wgl.COLOR_BUFFER_BIT);
     wgl.drawArrays(wgl.TRIANGLES,0,tespos.length/2);
+    const expo=10;
+    const beat=0.85+Math.pow(expo,Math.sin(Date.now()/80))*0.15/expo;
+    const rot=Math.PI/2;
+    const rx=Math.cos(rot);
+    const ry=Math.sin(rot);
+    wgl.uniformMatrix2fv(wgl.getUniformLocation(program,'transform'),false,[beat,0,0,beat]);
+    a+=0.01;
+    wgl.uniform1f(wgl.getUniformLocation(program,'a'),a);
     requestAnimationFrame(draw);
   }
   draw();
