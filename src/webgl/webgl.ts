@@ -2,7 +2,7 @@ const rescale=1;
 class Vector2{
   x=0;
   y=0;
-  constructor(tx,ty){
+  constructor(tx:number,ty:number){
     this.x=tx;
     this.y=ty;
   }
@@ -36,7 +36,7 @@ function iniShader(wgl:WebGLRenderingContext,shaderType:number,src:string):WebGL
 function drawVertexArray(){
   
 }
-async function setup(){
+async function setup():Promise<null>{
   const canvas:HTMLCanvasElement=document.querySelector("#main_canvas");
   const wgl:WebGLRenderingContext=canvas.getContext("webgl");
   if (wgl == null) {
@@ -45,11 +45,9 @@ async function setup(){
       );
       return;
   }
-  let vertexShaderSrc:HTMLDivElement=document.querySelector("#vertex_shader");
-  let fragmentShaderSrc:HTMLDivElement=document.querySelector("#fragment_shader");
   
-  const vertexShader:WebGLShader=iniShader(wgl,wgl.VERTEX_SHADER,vertexShaderSrc.innerText);
-  const fragmentShader:WebGLShader=iniShader(wgl,wgl.FRAGMENT_SHADER,fragmentShaderSrc.innerText);
+  const vertexShader:WebGLShader=iniShader(wgl,wgl.VERTEX_SHADER,require("./vertex_shader.glsl"));
+  const fragmentShader:WebGLShader=iniShader(wgl,wgl.FRAGMENT_SHADER,require("./fragment_shader.glsl"));
   const program=newProgram(wgl,vertexShader,fragmentShader);
 
   let positionAttributeLocation=wgl.getAttribLocation(program,'pos');
@@ -134,7 +132,7 @@ async function setup(){
     const ry=Math.sin(rot);
     wgl.uniformMatrix2fv(wgl.getUniformLocation(program,'transform'),false,[beat,0,0,beat]);
     a+=0.01;
-    wgl.uniform1f(wgl.getUniformLocation(program,'a'),a);
+    /*wgl.uniform1f(wgl.getUniformLocation(program,'a'),a);*/
     requestAnimationFrame(draw);
   }
   draw();

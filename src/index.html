@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html>
     <body id="canvas_container">
-        <style compilerSrc="style.css"></style>
+        <link href="style.css" rel="stylesheet"></link>
         <base href="./"/>
         <canvas id="main_canvas" width="360" height="480"></canvas>
         
-        <shader id="vertex_shader" compilerSrc="*/vertex_shader.vert"></shader>
-        <shader id="fragment_shader" compilerSrc="*/fragment_shader.frag"></shader>
-        
-        <script id="webgl_main" compilerSrc="*/webgl.ts"></script>
+        <script id="webgl_main" src="webgl/webgl.ts"></script>
     </body>
 </html>
