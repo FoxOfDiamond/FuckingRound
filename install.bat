@@ -1,6 +1,1 @@
-START /WAIT npm install webpack
-START /WAIT npm install webpack-cli
-START /WAIT npm install html-loader
-START /WAIT npm install mathjs
-START /WAIT npm install webpack-glsl-loader
-START /WAIT npm install ts-loader
+npm install @types/webpack-env css-loader html-bundler-webpack-plugin ts-loader typescript webpack-cli webpack-glsl-loader webpack

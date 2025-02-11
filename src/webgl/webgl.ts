@@ -1,13 +1,115 @@
+const assets:Map<string,any>=new Map<string,any>();
+function importAll(r:any) {
+  // @ts-ignore
+  r.keys().forEach((key) => (assets.set(key,r(key))));
+}
+importAll(require.context("../assets"))
 const rescale=1;
-class Vector2{
-  x=0;
-  y=0;
-  constructor(tx:number,ty:number){
-    this.x=tx;
-    this.y=ty;
+class Vector{
+  private values:Array<number>=[];
+  size=2;
+  get x():number{
+    return this.values[0];
+  }
+  set x(arg){
+    this.values[0]=arg;
+  }
+  get y():number{
+    return this.values[1];
+  }
+  set y(arg){
+    this.values[1]=arg;
+  }
+  get z():number{
+    return this.values[2];
+  }
+  set z(arg){
+    this.values[2]=arg;
+  }
+  get w():number{
+    return this.values[3];
+  }
+  set w(arg){
+    this.values[3]=arg;
+  }
+  get components():Array<number>{
+    return this.values;
+  }
+  toString():String{
+    return this.values.toString();
+  }
+  dot(a:Vector):number{
+    if (this.size==a.size){
+      let out=0;
+      for (let i=0;i<a.size;i++){
+        out+=this.values[i]*a.values[i]
+      }
+      return out;
+    }
+    console.error("Invalid dot product");
+    return null
+  }
+  constructor(tx:Array<number>|number=0,ty:number=0,tz?:number,tw?:number){
+    if (typeof(tx)=="number"){
+      this.x=tx;
+      this.y=ty;
+      if (tz){
+        this.size=3;
+        this.z=tz;
+      }
+      if (tw){
+        this.size=4;
+        this.w=tw;
+      }
+    }else if (tx instanceof Array){
+      this.values=tx;
+      this.size=tx.length
+    }
   }
 }
-setup();
+class Matrix{
+  values:Array<Array<number>>=[[0,0]];
+  get components():Array<number>{
+    let out:Array<number>=[];
+    for(let y=0;y<this.height;y++){
+      for(let x=0;x<this.width;x++){
+        out.push(this.values[y][x]);
+      }
+    }
+    return out;
+  }
+  row(r:number):Vector{
+    return new Vector(this.values[r]);
+  }
+  col(c:number):Vector{
+    let out:Array<number>=[];
+    for (let i=0;i<this.values.length;i++){
+      out[i]=this.values[i][c]
+    }
+    return new Vector(out)
+  }
+  mult(a:Matrix):Matrix{
+    if (a.height==this.width){
+      let out:Array<Array<number>>=[];
+      for(let y=0;y<this.height;y++){
+        out[y]=[];
+        for(let x=0;x<a.width;x++){
+          out[y][x]=this.row(y).dot(a.col(x));
+        }
+      }
+      return new Matrix(out);
+    }
+    console.error("Invalid matrix multiplication")
+    return null
+  }
+  width:number;
+  height:number;
+  constructor(tval:Array<Array<number>>){
+    this.height=tval.length
+    this.width=tval[0].length
+    this.values=tval
+  }
+}
 function newProgram(wgl:WebGLRenderingContext,vertexShader:WebGLShader,fragmentShader:WebGLShader){
   let program:WebGLProgram=wgl.createProgram();
   wgl.attachShader(program,vertexShader);
@@ -33,8 +135,13 @@ function iniShader(wgl:WebGLRenderingContext,shaderType:number,src:string):WebGL
   wgl.deleteShader(shader);
   return null;
 }
-function drawVertexArray(){
-  
+async function loadImage(path:string){
+  return new Promise<HTMLImageElement>((resolve,reject)=>{
+    let img=new Image();
+    img.onload=()=>resolve(img);
+    img.onerror=()=>reject;
+    img.src=assets.get(path);
+  })
 }
 async function setup():Promise<null>{
   const canvas:HTMLCanvasElement=document.querySelector("#main_canvas");
@@ -46,12 +153,12 @@ async function setup():Promise<null>{
       return;
   }
   
-  const vertexShader:WebGLShader=iniShader(wgl,wgl.VERTEX_SHADER,require("./vertex_shader.glsl"));
-  const fragmentShader:WebGLShader=iniShader(wgl,wgl.FRAGMENT_SHADER,require("./fragment_shader.glsl"));
+  const vertexShader:WebGLShader=iniShader(wgl,wgl.VERTEX_SHADER,assets.get("./shaders/vertex_shader.glsl"));
+  const fragmentShader:WebGLShader=iniShader(wgl,wgl.FRAGMENT_SHADER,assets.get("./shaders/fragment_shader.glsl"));
   const program=newProgram(wgl,vertexShader,fragmentShader);
 
   let positionAttributeLocation=wgl.getAttribLocation(program,'pos');
-  let trueViewport=new Vector2(1,1);
+  let trueViewport=new Vector(1,1);
   function fit(){
     let cont:HTMLDivElement=document.querySelector("#canvas_container");
     const w=window.visualViewport.width-9;
@@ -111,7 +218,6 @@ async function setup():Promise<null>{
    0.4,0.6,
    
   ];
-  wgl.bufferData(wgl.ARRAY_BUFFER,new Float32Array(tespos),wgl.DYNAMIC_DRAW);
 
   wgl.useProgram(program);
   wgl.enableVertexAttribArray(positionAttributeLocation);
@@ -119,8 +225,19 @@ async function setup():Promise<null>{
   wgl.bindBuffer(wgl.ARRAY_BUFFER,positionBuffer);
   wgl.vertexAttribPointer(positionAttributeLocation,2,wgl.FLOAT,false,0,0);
 
+  let img=await loadImage("./textures/mask.png");
+  let texture=wgl.createTexture();
+  let texturePointer=wgl.getUniformLocation(program,"texture");
+  wgl.bindTexture(wgl.TEXTURE_2D,texture)
+  wgl.texImage2D(wgl.TEXTURE_2D,0,wgl.RGBA,wgl.RGBA,wgl.UNSIGNED_BYTE,img);
+  wgl.generateMipmap(wgl.TEXTURE_2D);
+  wgl.uniform1i(texturePointer,0);
+
+  wgl.bufferData(wgl.ARRAY_BUFFER,new Float32Array(tespos),wgl.STATIC_DRAW);
+
   fit();
   let a=0;
+
   function draw(){
     wgl.clearColor(0.3,0,0,1);
     wgl.clear(wgl.COLOR_BUFFER_BIT);
@@ -130,11 +247,20 @@ async function setup():Promise<null>{
     const rot=Math.PI/2;
     const rx=Math.cos(rot);
     const ry=Math.sin(rot);
-    wgl.uniformMatrix2fv(wgl.getUniformLocation(program,'transform'),false,[beat,0,0,beat]);
+    const scaleMatrix=new Matrix([[beat,0],[0,beat]]);
+    const rotMatrix=new Matrix([[Math.cos(a),-Math.sin(a)],[Math.sin(a),Math.cos(a)]]); 
+    const transMatrix=rotMatrix.mult(scaleMatrix);
+    wgl.uniformMatrix2fv(wgl.getUniformLocation(program,'transform'),false,transMatrix.components); 
+    
+    const TrotMatrix=new Matrix([[Math.cos(-a),-Math.sin(a)],[Math.sin(a),Math.cos(a)]]); 
+    wgl.uniformMatrix2fv(wgl.getUniformLocation(program,'textureTransform'),false,TrotMatrix.components); 
+
     a+=0.01;
-    /*wgl.uniform1f(wgl.getUniformLocation(program,'a'),a);*/
     requestAnimationFrame(draw);
   }
   draw();
   return null;
 }
+window.onload=()=>{
+  setup();
+};

@@ -11,13 +11,7 @@ module.exports = {
     new HtmlBundlerPlugin({
       entry: {
         index: 'src/index.html',
-      },
-      js: {
-        filename: 'js/[name].[contenthash:8].js',
-      },
-      css: {
-        filename: 'css/[name].[contenthash:8].css',
-      },
+      }
     }),
   ],
   module: {
@@ -31,6 +25,10 @@ module.exports = {
       {
         test: /\.glsl$/,
         loader: 'webpack-glsl-loader'
+      },
+      {
+        test: /\.(ico|png|jpe?g|svg)/,
+        type: 'asset/resource',
       }
     ]
   }
